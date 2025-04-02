@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Sistema de Agendamento de Aulas - Versão Final Corrigida
+Sistema de Agendamento de Aulas - Versão Final Corrigida (PythonAnywhere)
 """
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
@@ -12,9 +12,15 @@ from flask_wtf.csrf import CSRFProtect
 # Configuração do app
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.urandom(24)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.root_path, 'instance', 'database.db')
+
+# Configuração do banco de dados (SQLite - caminho absoluto para PythonAnywhere)
+basedir = '/home/edsonbarcaro/escola-agendamento'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{basedir}/instance/database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['WTF_CSRF_ENABLED'] = True
+
+# Garante que a pasta instance existe
+os.makedirs(f'{basedir}/instance', exist_ok=True)
 
 # Inicializações
 db = SQLAlchemy(app)
@@ -72,7 +78,6 @@ def login():
             return redirect(url_for('dashboard'))
         
         flash('Usuário ou senha incorretos', 'danger')
-    
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -105,7 +110,6 @@ def register():
         except Exception as e:
             db.session.rollback()
             flash(f'Erro no cadastro: {str(e)}', 'danger')
-    
     return render_template('register.html')
 
 @app.route('/dashboard')
@@ -150,7 +154,6 @@ def agendar():
         except Exception as e:
             db.session.rollback()
             flash(f'Erro ao agendar: {str(e)}', 'danger')
-    
     return redirect(url_for('dashboard'))
 
 @app.route('/editar_agendamento/<int:id>', methods=['GET', 'POST'])
@@ -170,8 +173,30 @@ def editar_agendamento(id):
         except Exception as e:
             db.session.rollback()
             flash(f'Erro ao atualizar: {str(e)}', 'danger')
-    
     return render_template('editar_agendamento.html', agendamento=agendamento)
+
+# ========= CORREÇÃO 1: EXCLUSÃO DE USUÁRIOS (NOVA ROTA) =========
+@app.route('/excluir_usuario/<int:id>', methods=['POST'])
+def excluir_usuario(id):
+    if 'user_id' not in session or session.get('user_type') != 'instrutor':
+        return jsonify({'success': False, 'message': 'Acesso negado'}), 403
+    
+    try:
+        usuario = User.query.get(id)
+        if not usuario:
+            return jsonify({'success': False, 'message': 'Usuário não encontrado'}), 404
+        
+        # Remove agendamentos vinculados ao usuário
+        Agendamento.query.filter(
+            (Agendamento.aluno_id == id) | (Agendamento.instrutor_id == id)
+        ).delete()
+        
+        db.session.delete(usuario)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Usuário excluído com sucesso!'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'Erro ao excluir: {str(e)}'}), 500
 
 @app.route('/enviar_mensagem/<int:id>', methods=['GET', 'POST'])
 def enviar_mensagem(id):
@@ -189,7 +214,6 @@ def enviar_mensagem(id):
         except Exception as e:
             db.session.rollback()
             flash(f'Erro ao enviar mensagem: {str(e)}', 'danger')
-    
     return render_template('enviar_mensagem.html', agendamento=agendamento)
 
 @app.route('/logout')
@@ -201,7 +225,6 @@ def logout():
 # Inicialização do banco de dados
 def init_db():
     with app.app_context():
-        os.makedirs(os.path.join(app.root_path, 'instance'), exist_ok=True)
         db.create_all()
         
         if not db.session.execute(
