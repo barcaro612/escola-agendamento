@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container instructor-dashboard">
+    <h1><i class="bi bi-person-badge"></i> Painel do Instrutor</h1>
+    <p class="lead">Bem-vindo, {{ user.nome_completo }}!</p>
+
+    <!-- Seção de Gerenciamento de Usuários -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="bi bi-people-fill"></i> Gerenciamento de Usuários</h2>
+            <small class="text-white-50">Todos os usuários cadastrados no sistema</small>
+        </div>
+        <div class="card-body">
+            {% if usuarios %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome Completo</th>
+                            <th>Username</th>
+                            <th>Tipo</th>
+                            <th>Data Cadastro</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr>
+                            <td>{{ usuario.id }}</td>
+                            <td>{{ usuario.nome_completo }}</td>
+                            <td>{{ usuario.username }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if usuario.tipo == 'instrutor' %}bg-primary
+                                    {% elif usuario.tipo == 'aluno' %}bg-success
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ usuario.tipo|upper }}
+                                </span>
+                            </td>
+                            <td>{{ usuario.data_cadastro.strftime('%d/%m/%Y') }}</td>
+                            <td class="actions-column">
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-danger delete-user" 
+                                            data-user-id="{{ usuario.id }}"
+                                            data-bs-toggle="tooltip" 
+                                            title="Excluir usuário">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Nenhum usuário cadastrado no sistema.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Seção de Agendamentos -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="bi bi-calendar-check"></i> Agendamentos da Escola</h2>
+            <small class="text-white-50">Todos os agendamentos disponíveis para acompanhamento</small>
+        </div>
+        <div class="card-body">
+            {% if agendamentos %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Período</th>
+                            <th>Aluno</th>
+                            <th>Peso</th>
+                            <th>Status</th>
+                            <th class="actions-column">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agendamento in agendamentos %}
+                        <tr>
+                            <td>{{ agendamento.data }}</td>
+                            <td>
+                                {% if agendamento.periodo == 'manhã' %}
+                                    <span class="badge bg-info">08:00-12:00</span>
+                                {% elif agendamento.periodo == 'tarde' %}
+                                    <span class="badge bg-warning text-dark">13:00-17:00</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">08:00-17:00</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ agendamento.aluno_rel.nome_completo }}</td>
+                            <td>{{ agendamento.aluno_rel.peso }} kg</td>
+                            <td>
+                                <span class="badge 
+                                    {% if agendamento.status == 'aprovado' %}bg-success
+                                    {% elif agendamento.status == 'pendente' %}bg-warning text-dark
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ agendamento.status|upper }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('editar_agendamento', id=agendamento.id) }}" 
+                                       class="btn btn-outline-primary"
+                                       data-bs-toggle="tooltip" 
+                                       title="Editar agendamento">
+                                       <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{{ url_for('enviar_mensagem', id=agendamento.id) }}" 
+                                       class="btn btn-outline-info"
+                                       data-bs-toggle="tooltip"
+                                       title="Enviar mensagem">
+                                       <i class="bi bi-chat-left-text"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Nenhum agendamento cadastrado no sistema.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Seção de Previsão do Tempo -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="bi bi-cloud-sun"></i> Previsão do Tempo</h2>
+        </div>
+        <div class="card-body">
+            <iframe src="https://embed.windy.com/embed2.html?lat=-23.550&lon=-46.633&detailLat=-23.550&detailLon=-46.633&width=650&height=450&zoom=10&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1"
+                width="100%" 
+                height="400" 
+                frameborder="0"
+                class="weather-iframe">
+            </iframe>
+            <p class="mt-2 text-muted">
+                <i class="bi bi-info-circle"></i> Verifique as condições climáticas para as aulas agendadas
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação para exclusão -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .instructor-dashboard .container {
+        max-width: 1400px;
+    }
+    
+    .instructor-dashboard .card-header {
+        border-radius: 5px 5px 0 0 !important;
+    }
+    
+    .instructor-dashboard .table th {
+        white-space: nowrap;
+    }
+    
+    .instructor-dashboard .weather-iframe {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .instructor-dashboard .badge {
+        font-size: 0.85em;
+        padding: 5px 8px;
+        font-weight: 500;
+    }
+    
+    .instructor-dashboard .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .instructor-dashboard .actions-column {
+        white-space: nowrap;
+        width: 120px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ativa tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Configura o modal de exclusão de usuário
+        var deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        var userIdToDelete = null;
+        
+        document.querySelectorAll('.delete-user').forEach(function(button) {
+            button.addEventListener('click', function() {
+                userIdToDelete = this.getAttribute('data-user-id');
+                deleteModal.show();
+            });
+        });
+
+        document.getElementById('confirmDeleteButton').addEventListener('click', function() {
+            if (userIdToDelete) {
+                fetch('/deletar_usuario/' + userIdToDelete, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        alert('Erro ao excluir usuário');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Erro ao excluir usuário');
+                });
+            }
+            deleteModal.hide();
+        });
+    });
+</script>
+{% endblock %}

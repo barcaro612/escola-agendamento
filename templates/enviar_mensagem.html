@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card border-0 shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Enviar Mensagem para Aluno</h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info mb-4">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>Detalhes do Agendamento</strong>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Aluno:</strong> {{ agendamento.aluno_rel.nome_completo }}</p>
+                        <p class="mb-1"><strong>Peso:</strong> {{ agendamento.aluno_rel.peso }} kg</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Data:</strong> {{ agendamento.data }}</p>
+                        <p class="mb-1"><strong>Período:</strong> 
+                            <span class="badge 
+                                {% if agendamento.periodo == 'manhã' %}bg-info
+                                {% elif agendamento.periodo == 'tarde' %}bg-warning text-dark
+                                {% else %}bg-secondary{% endif %}">
+                                {{ agendamento.periodo|capitalize }}
+                                {% if agendamento.periodo == 'manhã' %}(08:00-12:00)
+                                {% elif agendamento.periodo == 'tarde' %}(13:00-17:00)
+                                {% else %}(08:00-17:00){% endif %}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('enviar_mensagem', id=agendamento.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="mb-4">
+                    <label for="mensagem" class="form-label fw-bold">
+                        <i class="bi bi-chat-square-text me-1"></i> Mensagem:
+                    </label>
+                    <textarea class="form-control" id="mensagem" name="mensagem" rows="6"
+                        placeholder="Escreva aqui sua mensagem para o aluno..." required>{{ agendamento.mensagem_instrutor or '' }}</textarea>
+                    <div class="form-text mt-1">
+                        Esta mensagem será vinculada ao agendamento e visível para o aluno.
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i> Voltar ao Painel
+                    </a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-send-fill me-1"></i> Enviar Mensagem
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 800px;
+    }
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .card-header {
+        border-radius: 0 !important;
+    }
+    textarea {
+        resize: vertical;
+        min-height: 180px;
+        border: 1px solid #ced4da;
+    }
+    .badge {
+        font-size: 0.85em;
+        padding: 5px 10px;
+        font-weight: 500;
+    }
+    .form-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}

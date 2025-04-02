@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1><i class="bi bi-person-badge"></i> Painel do Aluno</h1>
+    <p class="lead">Olá, {{ user.nome_completo }} ({{ user.peso }} kg)</p>
+
+    <!-- Previsão do Tempo -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="bi bi-cloud-sun"></i> Previsão do Tempo para Prática</h2>
+        </div>
+        <div class="card-body">
+            <iframe src="https://embed.windy.com/embed2.html?lat=-23.550&lon=-46.633&detailLat=-23.550&detailLon=-46.633&width=650&height=450&zoom=10&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1"
+                width="100%" 
+                height="400" 
+                frameborder="0"
+                class="weather-iframe">
+            </iframe>
+            <p class="mt-2 text-muted">
+                <i class="bi bi-info-circle"></i> Verifique as condições climáticas antes de agendar
+            </p>
+        </div>
+    </div>
+
+    <!-- Formulário de Agendamento -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="bi bi-calendar-plus"></i> Novo Agendamento</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('agendar') }}" id="form-agendamento">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="data" class="form-label">Data*</label>
+                            <input type="date" 
+                                id="data"
+                                name="data" 
+                                class="form-control" 
+                                required
+                                min="{{ now.strftime('%Y-%m-%d') }}"
+                                onchange="validarData()">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="periodo" class="form-label">Período*</label>
+                            <select id="periodo" name="periodo" class="form-select" required>
+                                <option value="">Selecione...</option>
+                                <option value="manhã">Manhã (08:00 - 12:00)</option>
+                                <option value="tarde">Tarde (13:00 - 17:00)</option>
+                                <option value="integral">Dia Inteiro (08:00 - 17:00)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">
+                    <i class="bi bi-send-check"></i> Solicitar Agendamento
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Agendamentos -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="bi bi-list-check"></i> Meus Agendamentos</h2>
+        </div>
+        <div class="card-body">
+            {% if agendamentos %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Período</th>
+                            <th>Instrutor</th>
+                            <th>Status</th>
+                            <th>Mensagem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agendamento in agendamentos %}
+                        <tr>
+                            <td>{{ agendamento.data }}</td>
+                            <td>
+                                {% if agendamento.periodo == 'manhã' %}
+                                    <span class="badge bg-info">08:00 - 12:00</span>
+                                {% elif agendamento.periodo == 'tarde' %}
+                                    <span class="badge bg-warning text-dark">13:00 - 17:00</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">08:00 - 17:00</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if agendamento.instrutor %}
+                                    {{ agendamento.instrutor.nome_completo }}
+                                {% else %}
+                                    '---'
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if agendamento.status == 'aprovado' %}bg-success
+                                    {% elif agendamento.status == 'pendente' %}bg-warning text-dark
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ agendamento.status|upper }}
+                                </span>
+                            </td>
+                            <td>{{ agendamento.mensagem_instrutor or '---' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Nenhum agendamento encontrado.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 1400px;
+    }
+    .card-header {
+        border-radius: 5px 5px 0 0 !important;
+    }
+    .weather-iframe {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    .badge {
+        font-size: 0.85em;
+        padding: 5px 8px;
+        font-weight: 500;
+    }
+    .table th {
+        white-space: nowrap;
+    }
+</style>
+
+<script>
+    function validarData() {
+        const dataInput = document.getElementById('data');
+        const dataSelecionada = new Date(dataInput.value);
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        
+        if (dataSelecionada < hoje) {
+            alert('Não é possível agendar para datas passadas');
+            dataInput.value = '';
+            return false;
+        }
+        return true;
+    }
+
+    // Validação antes do envio
+    document.getElementById('form-agendamento').addEventListener('submit', function(e) {
+        if (!validarData()) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

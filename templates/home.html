@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    <h1 class="display-4 mb-4 text-primary">
+                        <i class="bi bi-calendar-check"></i> Bem-vindo ao Sistema de Agendamento
+                    </h1>
+                    
+                    <p class="lead mb-4">
+                        Sistema completo para gerenciamento de aulas e agendamentos
+                    </p>
+                    
+                    <div class="d-flex justify-content-center gap-3 mt-5">
+                        {% if 'user_id' in session %}
+                            {% set current_user = User.query.get(session['user_id']) %}
+                            <div class="alert alert-info w-100">
+                                <h4 class="alert-heading">
+                                    <i class="bi bi-person-check"></i> Você está logado como {{ current_user.nome_completo }}
+                                </h4>
+                                <p>
+                                    <span class="badge bg-{{ 'primary' if current_user.tipo == 'instrutor' else 'success' }}">
+                                        {{ current_user.tipo|capitalize }}
+                                    </span>
+                                </p>
+                                <hr>
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-primary me-2">
+                                    <i class="bi bi-speedometer2"></i> Ir para o Painel
+                                </a>
+                                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">
+                                    <i class="bi bi-box-arrow-right"></i> Sair
+                                </a>
+                            </div>
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-4 me-3">
+                                <i class="bi bi-box-arrow-in-right"></i> Fazer Login
+                            </a>
+                            <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg px-4">
+                                <i class="bi bi-person-plus"></i> Criar Conta
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-5 g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-calendar-date fs-1 text-primary"></i>
+                            <h3 class="h5 mt-3">Agendamento Fácil</h3>
+                            <p class="text-muted">Marque suas aulas de forma simples e rápida</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-cloud-sun fs-1 text-primary"></i>
+                            <h3 class="h5 mt-3">Previsão do Tempo</h3>
+                            <p class="text-muted">Verifique as condições climáticas para suas aulas</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-chat-left-text fs-1 text-primary"></i>
+                            <h3 class="h5 mt-3">Comunicação</h3>
+                            <p class="text-muted">Troque mensagens com seu instrutor/aluno</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .display-4 {
+        font-weight: 300;
+    }
+    .btn-lg {
+        min-width: 150px;
+    }
+</style>
+{% endblock %}

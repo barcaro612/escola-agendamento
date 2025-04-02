@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="bi bi-pencil-square"></i> Editar Agendamento</h2>
+        </div>
+        <div class="card-body">
+            <div class="mb-4">
+                <p><strong>Aluno:</strong> {{ agendamento.aluno_rel.nome_completo }}</p>
+                <p><strong>Data:</strong> {{ agendamento.data }}</p>
+                <p><strong>Período:</strong> 
+                    {% if agendamento.periodo == 'manhã' %}
+                        <span class="badge bg-info">Manhã (08:00-12:00)</span>
+                    {% elif agendamento.periodo == 'tarde' %}
+                        <span class="badge bg-warning text-dark">Tarde (13:00-17:00)</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Dia Inteiro (08:00-17:00)</span>
+                    {% endif %}
+                </p>
+            </div>
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="mb-3">
+                    <label for="status" class="form-label">Status:</label>
+                    <select class="form-select" id="status" name="status" required>
+                        <option value="pendente" {% if agendamento.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                        <option value="aprovado" {% if agendamento.status == 'aprovado' %}selected{% endif %}>Aprovado</option>
+                        <option value="reprovado" {% if agendamento.status == 'reprovado' %}selected{% endif %}>Reprovado</option>
+                        <option value="cancelado" {% if agendamento.status == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="mensagem" class="form-label">Mensagem para o aluno:</label>
+                    <textarea class="form-control" id="mensagem" name="mensagem" rows="4"
+                              placeholder="Digite aqui qualquer observação ou feedback para o aluno">{{ agendamento.mensagem_instrutor or '' }}</textarea>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 800px;
+    }
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: none;
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+    .badge {
+        font-size: 0.9em;
+        padding: 5px 10px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
