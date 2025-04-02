@@ -175,21 +175,21 @@ def editar_agendamento(id):
             flash(f'Erro ao atualizar: {str(e)}', 'danger')
     return render_template('editar_agendamento.html', agendamento=agendamento)
 
-# ========= CORREÇÃO 1: EXCLUSÃO DE USUÁRIOS (NOVA ROTA) =========
-@app.route('/excluir_usuario/<int:id>', methods=['POST'])
-def excluir_usuario(id):
+@app.route('/excluir_usuario/<int:user_id>', methods=['POST'])
+def excluir_usuario(user_id):
     if 'user_id' not in session or session.get('user_type') != 'instrutor':
         return jsonify({'success': False, 'message': 'Acesso negado'}), 403
     
     try:
-        usuario = User.query.get(id)
+        usuario = db.session.get(User, user_id)
         if not usuario:
             return jsonify({'success': False, 'message': 'Usuário não encontrado'}), 404
         
-        # Remove agendamentos vinculados ao usuário
-        Agendamento.query.filter(
-            (Agendamento.aluno_id == id) | (Agendamento.instrutor_id == id)
-        ).delete()
+        # Remove agendamentos vinculados
+        db.session.execute(
+            db.delete(Agendamento)
+            .where((Agendamento.aluno_id == user_id) | (Agendamento.instrutor_id == user_id))
+        )
         
         db.session.delete(usuario)
         db.session.commit()
@@ -242,37 +242,6 @@ def init_db():
             )
             db.session.add(admin)
             db.session.commit()
-            @app.route('/excluir_usuario/<int:user_id>', methods=['POST'])
-def excluir_usuario(user_id):
-    if 'user_id' not in session or session['user_type'] != 'instrutor':
-        return jsonify({'success': False, 'message': 'Acesso negado'}), 403
-
-    try:
-        # 1. Encontre o usuário
-        usuario = db.session.get(User, user_id)
-        if not usuario:
-            return jsonify({'success': False, 'message': 'Usuário não encontrado'}), 404
-
-        # 2. Remova agendamentos vinculados
-        db.session.execute(
-            db.delete(Agendamento)
-            .where((Agendamento.aluno_id == user_id) | (Agendamento.instrutor_id == user_id))
-        )
-
-        # 3. Exclua o usuário
-        db.session.delete(usuario)
-        db.session.commit()
-
-        return jsonify({
-            'success': True,
-            'message': 'Usuário excluído com sucesso!'
-        })
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': f'Erro ao excluir: {str(e)}'
-        }), 500
 
 if __name__ == '__main__':
     init_db()
