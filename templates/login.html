@@ -1,7 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-4">
+    <!-- Seção do Logo (adicionada aqui) -->
+    <div class="text-center mb-4">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" 
+             alt="Veleaulas Logo"
+             class="img-fluid"
+             style="max-height: 120px;">
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-4">
             <div class="card shadow">
@@ -49,8 +57,8 @@
         </div>
     </div>
 
-    <!-- Rodapé personalizado adicionado aqui -->
-    <div class="row justify-content-center mt-5">
+    <!-- Rodapé personalizado -->
+    <div class="row justify-content-center mt-4">
         <div class="col-md-6 col-lg-4 text-center text-muted small">
             <hr class="my-3">
             <p class="mb-1">© 2025 Edson Barcaro. Todos os direitos reservados.</p>
@@ -76,6 +84,11 @@
         opacity: 0.2;
         width: 80%;
         margin: 0 auto;
+    }
+    /* Estilo adicional para o logo */
+    .img-fluid {
+        max-width: 100%;
+        height: auto;
     }
 </style>
 {% endblock %}
