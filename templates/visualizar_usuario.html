@@ -1,133 +1,102 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow">
-                <div class="card-body p-4">
-                    <h2 class="text-center mb-4">
-                        <i class="bi bi-person-badge"></i> Dados do Usuário
-                    </h2>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="bi bi-person-lines-fill"></i> Dados Cadastrais do Usuário</h2>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-light float-end">
+                <i class="bi bi-arrow-left"></i> Voltar ao Painel
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Informações Pessoais</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">Nome Completo:</dt>
+                        <dd class="col-sm-8">{{ usuario.nome_completo }}</dd>
 
-                    <!-- Mensagens flash -->
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }} alert-dismissible fade show">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
+                        <dt class="col-sm-4">Endereço:</dt>
+                        <dd class="col-sm-8">{{ usuario.endereco }}</dd>
 
-                    <div class="user-profile">
-                        <!-- Cabeçalho com tipo de usuário -->
-                        <div class="text-end mb-3">
-                            <span class="badge rounded-pill bg-{{ 'primary' if usuario.tipo == 'instrutor' else 'success' }}">
-                                {{ 'Instrutor' if usuario.tipo == 'instrutor' else 'Aluno' }}
+                        <dt class="col-sm-4">CPF:</dt>
+                        <dd class="col-sm-8">{{ usuario.cpf }}</dd>
+
+                        <dt class="col-sm-4">Telefone:</dt>
+                        <dd class="col-sm-8">{{ usuario.telefone }}</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <h4>Outras Informações</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">Peso:</dt>
+                        <dd class="col-sm-8">{{ usuario.peso }} kg</dd>
+
+                        <dt class="col-sm-4">Tipo de Usuário:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge 
+                                {% if usuario.tipo == 'instrutor' %}bg-primary
+                                {% elif usuario.tipo == 'aluno' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ usuario.tipo|upper }}
                             </span>
-                        </div>
+                        </dd>
 
-                        <!-- Seção de Dados Pessoais -->
-                        <h5 class="mb-3 border-bottom pb-2">
-                            <i class="bi bi-person-lines-fill"></i> Dados Pessoais
-                        </h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Nome Completo</label>
-                                <div class="form-control-plaintext">{{ usuario.nome_completo }}</div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">CPF</label>
-                                <div class="form-control-plaintext">{{ usuario.cpf[:3] }}.{{ usuario.cpf[3:6] }}.{{ usuario.cpf[6:9] }}-{{ usuario.cpf[9:] }}</div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Endereço</label>
-                            <div class="form-control-plaintext">{{ usuario.endereco }}</div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Telefone</label>
-                                <div class="form-control-plaintext">
-                                    {% if usuario.telefone|length == 11 %}
-                                        ({{ usuario.telefone[:2] }}) {{ usuario.telefone[2:7] }}-{{ usuario.telefone[7:] }}
-                                    {% else %}
-                                        {{ usuario.telefone }}
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Peso</label>
-                                <div class="form-control-plaintext">{{ "%.1f kg"|format(usuario.peso) }}</div>
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- Seção de Dados de Acesso -->
-                        <h5 class="mb-3 border-bottom pb-2">
-                            <i class="bi bi-key-fill"></i> Dados de Acesso
-                        </h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Nome de Usuário</label>
-                                <div class="form-control-plaintext">{{ usuario.username }}</div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Data de Cadastro</label>
-                                <div class="form-control-plaintext">
-                                    {{ usuario.data_cadastro.strftime('%d/%m/%Y') }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Botões de Ação -->
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-md-2">
-                                <i class="bi bi-arrow-left"></i> Voltar
-                            </a>
-                            
-                            {% if session['user_type'] == 'instrutor' %}
-                            <a href="{{ url_for('editar_usuario', user_id=usuario.id) }}" class="btn btn-primary">
-                                <i class="bi bi-pencil-square"></i> Editar
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
+                        <dt class="col-sm-4">Data de Cadastro:</dt>
+                        <dd class="col-sm-8">{{ usuario.data_cadastro.strftime('%d/%m/%Y às %H:%M') }}</dd>
+                    </dl>
                 </div>
             </div>
+
+            <!-- Seção de Agendamentos (opcional) -->
+            {% if agendamentos %}
+            <div class="mt-5">
+                <h4><i class="bi bi-calendar3"></i> Agendamentos Relacionados</h4>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mt-3">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Período</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for agendamento in agendamentos %}
+                            <tr>
+                                <td>{{ agendamento.data }}</td>
+                                <td>{{ agendamento.periodo|capitalize }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if agendamento.status == 'aprovado' %}bg-success
+                                        {% elif agendamento.status == 'pendente' %}bg-warning text-dark
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ agendamento.status|upper }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <style>
-    .card {
-        border-radius: 10px;
-        border: none;
+    .card-header h2 {
+        display: inline-block;
+        margin-bottom: 0;
     }
-    .form-control-plaintext {
-        padding: 0.375rem 0.75rem;
-        background-color: #f8f9fa;
-        border-radius: 4px;
-        min-height: calc(1.5em + 0.75rem + 2px);
+    dl.row dt {
+        font-weight: normal;
+        color: #6c757d;
     }
-    .border-bottom {
-        border-color: #dee2e6!important;
-    }
-    hr {
-        opacity: 0.2;
-    }
-    .badge {
-        font-size: 0.9em;
-        padding: 0.5em 0.8em;
+    dl.row dd {
+        margin-bottom: 0.5rem;
     }
 </style>
 {% endblock %}
