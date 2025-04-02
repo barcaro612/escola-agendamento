@@ -86,11 +86,10 @@
                             </div>
                         </div>
 
-                        <!-- Campo exclusivo para instrutores -->
+                        <!-- Campo exclusivo para instrutores (sem texto explicativo) -->
                         <div class="mb-3" id="instrutor-field" style="display:none;">
-                            <label class="form-label">Palavra-chave de Instrutor*</label>
-                            <input type="password" class="form-control" name="instrutor_key">
-                            <small class="text-muted">Digite "Yeshua" para se registrar como instrutor</small>
+                            <label class="form-label">Confirmação de Identidade*</label>
+                            <input type="password" class="form-control" name="instrutor_key" id="instrutor-key">
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 py-2 mt-3">
@@ -111,7 +110,15 @@
     // Mostra/oculta campo de instrutor conforme seleção
     document.getElementById('tipo-select').addEventListener('change', function() {
         const instrutorField = document.getElementById('instrutor-field');
-        instrutorField.style.display = this.value === 'instrutor' ? 'block' : 'none';
+        const keyInput = document.getElementById('instrutor-key');
+        
+        if (this.value === 'instrutor') {
+            instrutorField.style.display = 'block';
+            keyInput.required = true;
+        } else {
+            instrutorField.style.display = 'none';
+            keyInput.required = false;
+        }
     });
 </script>
 
