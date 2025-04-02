@@ -132,6 +132,26 @@ def dashboard():
                             agendamentos=agendamentos,
                             usuarios=usuarios)
 
+@app.route('/visualizar_usuario/<int:user_id>')
+def visualizar_usuario(user_id):
+    if 'user_id' not in session or session.get('user_type') != 'instrutor':
+        return redirect(url_for('login'))
+    
+    usuario = db.session.get(User, user_id)
+    if not usuario:
+        flash('Usuário não encontrado', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    # Busca agendamentos relacionados ao usuário
+    agendamentos = db.session.execute(
+        db.select(Agendamento)
+        .where((Agendamento.aluno_id == user_id) | (Agendamento.instrutor_id == user_id))
+    ).scalars().all()
+    
+    return render_template('visualizar_usuario.html',
+                         usuario=usuario,
+                         agendamentos=agendamentos)
+
 @app.route('/agendar', methods=['POST'])
 def agendar():
     if 'user_id' not in session:
