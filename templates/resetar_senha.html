@@ -8,20 +8,16 @@
                     <h2 class="text-center mb-4">
                         <i class="bi bi-key-fill"></i> Nova Senha
                     </h2>
-
                     <form method="POST">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>  <!-- CSRF Token -->
-                        
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="mb-3">
-                            <label for="password" class="form-label">Nova Senha</label>
-                            <input type="password" class="form-control" name="password" required>
+                            <label class="form-label">Nova Senha</label>
+                            <input type="password" class="form-control" name="nova_senha" required>
                         </div>
-
                         <div class="mb-3">
-                            <label for="confirm_password" class="form-label">Confirmar Senha</label>
-                            <input type="password" class="form-control" name="confirm_password" required>
+                            <label class="form-label">Confirmar Senha</label>
+                            <input type="password" class="form-control" name="confirm_senha" required>
                         </div>
-
                         <button type="submit" class="btn btn-primary w-100 py-2">
                             <i class="bi bi-check-circle me-2"></i> Redefinir
                         </button>
