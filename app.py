@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 import os
 from flask_wtf.csrf import CSRFProtect
+from itsdangerous import URLSafeTimedSerializer
 
 # Configuração do app
 app = Flask(__name__, template_folder='templates')
@@ -18,13 +19,15 @@ basedir = '/home/edsonbarcaro/escola-agendamento'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{basedir}/instance/database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['WTF_CSRF_ENABLED'] = True
-
-# Garante que a pasta instance existe
-os.makedirs(f'{basedir}/instance', exist_ok=True)
+app.config['SECURITY_PASSWORD_SALT'] = 'salto-seguro-para-reset'  # Altere para um valor único
 
 # Inicializações
 db = SQLAlchemy(app)
 csrf = CSRFProtect(app)
+serializer = URLSafeTimedSerializer(app.secret_key)
+
+# Garante que a pasta instance existe
+os.makedirs(f'{basedir}/instance', exist_ok=True)
 
 # Modelo de Usuário
 class User(db.Model):
@@ -79,6 +82,46 @@ def login():
         
         flash('Usuário ou senha incorretos', 'danger')
     return render_template('login.html')
+
+@app.route('/esqueci-senha', methods=['GET', 'POST'])
+def esqueci_senha():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        user = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
+        
+        if user:
+            token = serializer.dumps(user.username, salt=app.config['SECURITY_PASSWORD_SALT'])
+            reset_url = url_for('resetar_senha', token=token, _external=True)
+            # Implemente aqui o envio do e-mail com reset_url
+            flash('Se o usuário existir, um e-mail com instruções foi enviado.', 'info')
+        else:
+            flash('Se o usuário existir, um e-mail com instruções foi enviado.', 'info')
+        return redirect(url_for('login'))
+    return render_template('esqueci_senha.html')
+
+@app.route('/resetar-senha/<token>', methods=['GET', 'POST'])
+def resetar_senha(token):
+    try:
+        username = serializer.loads(token, salt=app.config['SECURITY_PASSWORD_SALT'], max_age=3600)
+        user = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
+        
+        if not user:
+            flash('Link inválido ou expirado', 'danger')
+            return redirect(url_for('esqueci_senha'))
+        
+        if request.method == 'POST':
+            if request.form.get('password') != request.form.get('confirm_password'):
+                flash('As senhas não coincidem', 'danger')
+            else:
+                user.password = generate_password_hash(request.form.get('password'))
+                db.session.commit()
+                flash('Senha redefinida com sucesso!', 'success')
+                return redirect(url_for('login'))
+        
+        return render_template('resetar_senha.html', token=token)
+    except:
+        flash('Link inválido ou expirado', 'danger')
+        return redirect(url_for('esqueci_senha'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -142,7 +185,6 @@ def visualizar_usuario(user_id):
         flash('Usuário não encontrado', 'danger')
         return redirect(url_for('dashboard'))
     
-    # Busca agendamentos relacionados ao usuário
     agendamentos = db.session.execute(
         db.select(Agendamento)
         .where((Agendamento.aluno_id == user_id) | (Agendamento.instrutor_id == user_id))
@@ -163,7 +205,7 @@ def agendar():
         try:
             novo_agendamento = Agendamento(
                 aluno_id=user.id,
-                instrutor_id=1,  # Definir instrutor padrão ou implementar lógica de escolha
+                instrutor_id=1,
                 data=request.form.get('data'),
                 periodo=request.form.get('periodo'),
                 status='pendente'
@@ -205,7 +247,6 @@ def excluir_usuario(user_id):
         if not usuario:
             return jsonify({'success': False, 'message': 'Usuário não encontrado'}), 404
         
-        # Remove agendamentos vinculados
         db.session.execute(
             db.delete(Agendamento)
             .where((Agendamento.aluno_id == user_id) | (Agendamento.instrutor_id == user_id))
