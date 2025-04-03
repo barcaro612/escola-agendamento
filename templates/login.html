@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <!-- Seção do Logo (adicionada aqui) -->
+    <!-- Seção do Logo -->
     <div class="text-center mb-4">
         <img src="{{ url_for('static', filename='images/logosidartha.png') }}"
              alt="Veleaulas Logo"
@@ -48,7 +48,7 @@
 
                     <div class="text-center mt-3">
                         <a href="{{ url_for('esqueci_senha') }}" class="d-block text-decoration-none mb-2">
-                            Esqueci minha senha
+                            <i class="bi bi-question-circle me-1"></i> Esqueci minha senha
                         </a>
                         <p class="mb-0">Ainda não tem conta?</p>
                         <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-sm mt-2">
@@ -87,11 +87,6 @@
         opacity: 0.2;
         width: 80%;
         margin: 0 auto;
-    }
-    /* Estilo adicional para o logo */
-    .img-fluid {
-        max-width: 100%;
-        height: auto;
     }
     /* Estilo para o link de esqueci senha */
     a[href*="esqueci-senha"] {
