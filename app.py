@@ -71,15 +71,15 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        
+
         user = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
-        
+
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
             session['user_type'] = user.tipo
             flash('Login realizado com sucesso!', 'success')
             return redirect(url_for('dashboard'))
-        
+
         flash('Usuário ou senha incorretos', 'danger')
     return render_template('login.html')
 
@@ -88,7 +88,7 @@ def esqueci_senha():
     if request.method == 'POST':
         username = request.form.get('username')
         user = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
-        
+
         if user:
             token = serializer.dumps(user.username, salt=app.config['SECURITY_PASSWORD_SALT'])
             reset_url = url_for('resetar_senha', token=token, _external=True)
@@ -97,18 +97,18 @@ def esqueci_senha():
         else:
             flash('Se o usuário existir, um e-mail com instruções foi enviado.', 'info')
         return redirect(url_for('login'))
-    return render_template('esqueci_senha.html')
+    return render_template('esqueci_senha.html', form=request.form)
 
 @app.route('/resetar-senha/<token>', methods=['GET', 'POST'])
 def resetar_senha(token):
     try:
         username = serializer.loads(token, salt=app.config['SECURITY_PASSWORD_SALT'], max_age=3600)
         user = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
-        
+
         if not user:
             flash('Link inválido ou expirado', 'danger')
             return redirect(url_for('esqueci_senha'))
-        
+
         if request.method == 'POST':
             if request.form.get('password') != request.form.get('confirm_password'):
                 flash('As senhas não coincidem', 'danger')
@@ -117,8 +117,8 @@ def resetar_senha(token):
                 db.session.commit()
                 flash('Senha redefinida com sucesso!', 'success')
                 return redirect(url_for('login'))
-        
-        return render_template('resetar_senha.html', token=token)
+
+        return render_template('resetar_senha.html', token=token, form=request.form)
     except:
         flash('Link inválido ou expirado', 'danger')
         return redirect(url_for('esqueci_senha'))
@@ -159,9 +159,9 @@ def register():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
+
     user = db.session.get(User, session['user_id'])
-    
+
     if user.tipo == 'aluno':
         agendamentos = db.session.execute(
             db.select(Agendamento).where(Agendamento.aluno_id == user.id)
@@ -179,17 +179,17 @@ def dashboard():
 def visualizar_usuario(user_id):
     if 'user_id' not in session or session.get('user_type') != 'instrutor':
         return redirect(url_for('login'))
-    
+
     usuario = db.session.get(User, user_id)
     if not usuario:
         flash('Usuário não encontrado', 'danger')
         return redirect(url_for('dashboard'))
-    
+
     agendamentos = db.session.execute(
         db.select(Agendamento)
         .where((Agendamento.aluno_id == user_id) | (Agendamento.instrutor_id == user_id))
     ).scalars().all()
-    
+
     return render_template('visualizar_usuario.html',
                          usuario=usuario,
                          agendamentos=agendamentos)
@@ -198,9 +198,9 @@ def visualizar_usuario(user_id):
 def agendar():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
+
     user = db.session.get(User, session['user_id'])
-    
+
     if request.method == 'POST':
         try:
             novo_agendamento = Agendamento(
@@ -222,9 +222,9 @@ def agendar():
 def editar_agendamento(id):
     if 'user_id' not in session or session.get('user_type') != 'instrutor':
         return redirect(url_for('login'))
-    
+
     agendamento = db.session.get(Agendamento, id)
-    
+
     if request.method == 'POST':
         try:
             agendamento.status = request.form.get('status')
@@ -241,17 +241,17 @@ def editar_agendamento(id):
 def excluir_usuario(user_id):
     if 'user_id' not in session or session.get('user_type') != 'instrutor':
         return jsonify({'success': False, 'message': 'Acesso negado'}), 403
-    
+
     try:
         usuario = db.session.get(User, user_id)
         if not usuario:
             return jsonify({'success': False, 'message': 'Usuário não encontrado'}), 404
-        
+
         db.session.execute(
             db.delete(Agendamento)
             .where((Agendamento.aluno_id == user_id) | (Agendamento.instrutor_id == user_id))
         )
-        
+
         db.session.delete(usuario)
         db.session.commit()
         return jsonify({'success': True, 'message': 'Usuário excluído com sucesso!'})
@@ -263,9 +263,9 @@ def excluir_usuario(user_id):
 def enviar_mensagem(id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
+
     agendamento = db.session.get(Agendamento, id)
-    
+
     if request.method == 'POST':
         try:
             agendamento.mensagem_instrutor = request.form.get('mensagem')
@@ -287,7 +287,7 @@ def logout():
 def init_db():
     with app.app_context():
         db.create_all()
-        
+
         if not db.session.execute(
             db.select(User).where(User.username == 'admin')
         ).scalar_one_or_none():
