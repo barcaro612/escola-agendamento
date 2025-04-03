@@ -51,9 +51,9 @@
                             <label for="periodo" class="form-label">Período*</label>
                             <select id="periodo" name="periodo" class="form-select" required>
                                 <option value="">Selecione...</option>
-                                <option value="manhã">Manhã (08:00 - 12:00)</option>
-                                <option value="tarde">Tarde (13:00 - 17:00)</option>
-                                <option value="integral">Dia Inteiro (08:00 - 17:00)</option>
+                                <option value="manhã">Manhã (09:00 - 11:00)</option>
+                                <option value="tarde">Tarde (12:00 - 14:00)</option>
+                                <option value="integral">Dia Inteiro (09:00 - 14:00)</option>
                             </select>
                         </div>
                     </div>
@@ -89,11 +89,11 @@
                             <td>{{ agendamento.data }}</td>
                             <td>
                                 {% if agendamento.periodo == 'manhã' %}
-                                    <span class="badge bg-info">08:00 - 12:00</span>
+                                    <span class="badge bg-info">09:00 - 11:00</span>
                                 {% elif agendamento.periodo == 'tarde' %}
-                                    <span class="badge bg-warning text-dark">13:00 - 17:00</span>
+                                    <span class="badge bg-warning text-dark">12:00 - 14:00</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">08:00 - 17:00</span>
+                                    <span class="badge bg-secondary">09:00 - 14:00</span>
                                 {% endif %}
                             </td>
                             <td>
