@@ -1,13 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container">
-    <h2>Redefinir Senha</h2>
-    <form method="POST">
-        <div class="form-group">
-            <label for="username">Nome de usuário</label>
-            <input type="text" class="form-control" name="username" required>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">
+                        <i class="bi bi-key"></i> Redefinir Senha
+                    </h2>
+
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>  <!-- CSRF Token -->
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Usuário</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="bi bi-send-check me-2"></i> Enviar Link
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('login') }}" class="text-decoration-none">
+                            <i class="bi bi-arrow-left"></i> Voltar ao Login
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">Enviar Link</button>
-    </form>
+    </div>
 </div>
 {% endblock %}
