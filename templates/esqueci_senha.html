@@ -6,22 +6,26 @@
             <div class="card shadow">
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">
-                        <i class="bi bi-key"></i> Redefinir Senha
+                        <i class="bi bi-shield-lock"></i> Validar Identidade
                     </h2>
-
                     <form method="POST">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>  <!-- CSRF Token -->
-                        
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="mb-3">
-                            <label for="username" class="form-label">Usuário</label>
-                            <input type="text" class="form-control" name="username" required>
+                            <label class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" name="nome_completo" required>
                         </div>
-
+                        <div class="mb-3">
+                            <label class="form-label">CPF (somente números)</label>
+                            <input type="text" class="form-control" name="cpf" pattern="\d{11}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Peso (kg)</label>
+                            <input type="number" step="0.1" class="form-control" name="peso" required>
+                        </div>
                         <button type="submit" class="btn btn-primary w-100 py-2">
-                            <i class="bi bi-send-check me-2"></i> Enviar Link
+                            <i class="bi bi-check-circle me-2"></i> Validar
                         </button>
                     </form>
-
                     <div class="text-center mt-3">
                         <a href="{{ url_for('login') }}" class="text-decoration-none">
                             <i class="bi bi-arrow-left"></i> Voltar ao Login
