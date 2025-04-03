@@ -36,13 +36,14 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="data" class="form-label">Data*</label>
-                            <input type="date" 
+                            <input type="text" 
                                 id="data"
                                 name="data" 
-                                class="form-control" 
+                                class="form-control datepicker" 
+                                placeholder="Selecione a data"
                                 required
-                                min="{{ now.strftime('%Y-%m-%d') }}"
-                                onchange="validarData()">
+                                readonly
+                                data-min-date="{{ now.strftime('%Y-%m-%d') }}">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -144,9 +145,36 @@
     .table th {
         white-space: nowrap;
     }
+    /* Estilos adicionados para o datepicker */
+    .datepicker {
+        background-color: white;
+        cursor: pointer;
+    }
+    .flatpickr-input {
+        min-height: 48px;
+        font-size: 16px;
+    }
 </style>
 
+<!-- Adicione esses scripts antes do fechamento do bloco -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+
 <script>
+    // Configuração do Flatpickr
+    flatpickr(".datepicker", {
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        locale: "pt",
+        disableMobile: true, // Força o datepicker customizado
+        onOpen: function(selectedDates, dateStr, instance) {
+            // Garante que o calendário abra corretamente em iOS
+            setTimeout(() => instance.calendarContainer.style.zIndex = "1060", 0);
+        }
+    });
+
+    // Validação de data atualizada
     function validarData() {
         const dataInput = document.getElementById('data');
         const dataSelecionada = new Date(dataInput.value);
@@ -155,7 +183,7 @@
         
         if (dataSelecionada < hoje) {
             alert('Não é possível agendar para datas passadas');
-            dataInput.value = '';
+            dataInput._flatpickr.clear();
             return false;
         }
         return true;
