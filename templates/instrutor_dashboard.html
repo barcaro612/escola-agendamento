@@ -5,7 +5,7 @@
     <h1><i class="bi bi-person-badge"></i> Painel do Instrutor</h1>
     <p class="lead">Bem-vindo, {{ user.nome_completo }}!</p>
 
-    <!-- Seção de Gerenciamento de Usuários -->
+    <!-- Seção de Gerenciamento de Usuários (mantida igual) -->
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
             <h2><i class="bi bi-people-fill"></i> Gerenciamento de Usuários</h2>
@@ -72,70 +72,101 @@
         </div>
     </div>
 
-    <!-- Seção de Agendamentos -->
+    <!-- Seção de Agendamentos (ATUALIZADA COM AGRUPAMENTO) -->
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
             <h2><i class="bi bi-calendar-check"></i> Agendamentos da Escola</h2>
-            <small class="text-white-50">Todos os agendamentos disponíveis para acompanhamento</small>
+            <small class="text-white-50">Agendamentos agrupados por dia e período</small>
         </div>
         <div class="card-body">
             {% if agendamentos %}
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Data</th>
-                            <th>Período</th>
-                            <th>Aluno</th>
-                            <th>Peso</th>
-                            <th>Status</th>
-                            <th class="actions-column">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for agendamento in agendamentos %}
-                        <tr>
-                            <td>{{ agendamento.data }}</td>
-                            <td>
-                                {% if agendamento.periodo == 'manhã' %}
-                                    <span class="badge bg-info">08:00-12:00</span>
-                                {% elif agendamento.periodo == 'tarde' %}
-                                    <span class="badge bg-warning text-dark">13:00-17:00</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">08:00-17:00</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ agendamento.aluno_rel.nome_completo }}</td>
-                            <td>{{ agendamento.aluno_rel.peso }} kg</td>
-                            <td>
-                                <span class="badge 
-                                    {% if agendamento.status == 'aprovado' %}bg-success
-                                    {% elif agendamento.status == 'pendente' %}bg-warning text-dark
-                                    {% else %}bg-danger{% endif %}">
-                                    {{ agendamento.status|upper }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ url_for('editar_agendamento', id=agendamento.id) }}" 
-                                       class="btn btn-outline-primary"
-                                       data-bs-toggle="tooltip" 
-                                       title="Editar agendamento">
-                                       <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="{{ url_for('enviar_mensagem', id=agendamento.id) }}" 
-                                       class="btn btn-outline-info"
-                                       data-bs-toggle="tooltip"
-                                       title="Enviar mensagem">
-                                       <i class="bi bi-chat-left-text"></i>
-                                    </a>
+                {# Primeiro organizamos os agendamentos por data #}
+                {% set agendamentos_por_data = {} %}
+                {% for agendamento in agendamentos %}
+                    {% if agendamento.data not in agendamentos_por_data %}
+                        {% set _ = agendamentos_por_data.update({agendamento.data: []}) %}
+                    {% endif %}
+                    {% set _ = agendamentos_por_data[agendamento.data].append(agendamento) %}
+                {% endfor %}
+
+                {# Agora exibimos ordenados por data #}
+                {% for data, agendamentos_dia in agendamentos_por_data.items()|sort %}
+                    <div class="agendamento-dia mb-4">
+                        <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-top">
+                            <h5 class="mb-0">
+                                <i class="bi bi-calendar-date"></i> {{ data }}
+                            </h5>
+                            <span class="badge bg-primary">
+                                {{ agendamentos_dia|length }} aula(s)
+                            </span>
+                        </div>
+
+                        {# Agrupamos por período dentro de cada dia #}
+                        <div class="agendamento-periodos">
+                            {% set periodos = {'manhã': [], 'tarde': [], 'integral': []} %}
+                            {% for agendamento in agendamentos_dia %}
+                                {% set _ = periodos[agendamento.periodo].append(agendamento) %}
+                            {% endfor %}
+
+                            {% for periodo, ags in periodos.items() if ags %}
+                                <div class="agendamento-periodo border-bottom pb-3 mb-3">
+                                    <h6 class="mt-3 mb-2">
+                                        <i class="bi bi-clock"></i>
+                                        {% if periodo == 'manhã' %}
+                                            Manhã (08:00-12:00)
+                                        {% elif periodo == 'tarde' %}
+                                            Tarde (13:00-17:00)
+                                        {% else %}
+                                            Dia Inteiro (08:00-17:00)
+                                        {% endif %}
+                                        <small class="text-muted ms-2">{{ ags|length }} agendamento(s)</small>
+                                    </h6>
+
+                                    <div class="row">
+                                        {% for agendamento in ags %}
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="card agendamento-card">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="card-title mb-1">
+                                                                {{ agendamento.aluno_rel.nome_completo }}
+                                                            </h6>
+                                                            <p class="card-text mb-1">
+                                                                <i class="bi bi-speedometer2"></i> {{ agendamento.aluno_rel.peso }} kg
+                                                            </p>
+                                                        </div>
+                                                        <span class="badge 
+                                                            {% if agendamento.status == 'aprovado' %}bg-success
+                                                            {% elif agendamento.status == 'pendente' %}bg-warning text-dark
+                                                            {% else %}bg-danger{% endif %}">
+                                                            {{ agendamento.status|upper }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="mt-2 d-flex justify-content-end">
+                                                        <a href="{{ url_for('editar_agendamento', id=agendamento.id) }}" 
+                                                           class="btn btn-sm btn-outline-primary me-1"
+                                                           data-bs-toggle="tooltip" 
+                                                           title="Editar agendamento">
+                                                           <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <a href="{{ url_for('enviar_mensagem', id=agendamento.id) }}" 
+                                                           class="btn btn-sm btn-outline-info"
+                                                           data-bs-toggle="tooltip"
+                                                           title="Enviar mensagem">
+                                                           <i class="bi bi-chat-left-text"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
             {% else %}
             <div class="alert alert-info">
                 <i class="bi bi-info-circle"></i> Nenhum agendamento cadastrado no sistema.
@@ -144,7 +175,7 @@
         </div>
     </div>
 
-    <!-- Seção de Previsão do Tempo -->
+    <!-- Seção de Previsão do Tempo (mantida igual) -->
     <div class="card">
         <div class="card-header bg-primary text-white">
             <h2><i class="bi bi-cloud-sun"></i> Previsão do Tempo</h2>
@@ -172,10 +203,6 @@
         border-radius: 5px 5px 0 0 !important;
     }
     
-    .instructor-dashboard .table th {
-        white-space: nowrap;
-    }
-    
     .instructor-dashboard .weather-iframe {
         border-radius: 8px;
         border: 1px solid #dee2e6;
@@ -187,13 +214,29 @@
         font-weight: 500;
     }
     
-    .instructor-dashboard .btn-group-sm .btn {
-        padding: 0.25rem 0.5rem;
+    /* Novos estilos para agrupamento */
+    .agendamento-dia {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
     }
     
-    .instructor-dashboard .actions-column {
+    .agendamento-card {
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    
+    .agendamento-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .agendamento-periodo {
+        padding: 0 1rem;
+    }
+    
+    .actions-column {
         white-space: nowrap;
-        width: 150px;
     }
 </style>
 
