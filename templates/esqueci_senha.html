@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Redefinir Senha</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="username">Nome de usuário</label>
+            <input type="text" class="form-control" name="username" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar Link</button>
+    </form>
+</div>
+{% endblock %}
